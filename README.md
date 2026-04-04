@@ -74,6 +74,9 @@ Training follows a two-stage protocol to prevent the contrastive loss from domin
 ## Phase 1 Findings
 
 ### 1. Latent space convergence
+<img width="1950" height="750" alt="image" src="https://github.com/user-attachments/assets/45f2544b-8717-4ad0-88f8-14252b0d7e46" />
+
+<img width="1950" height="750" alt="image" src="https://github.com/user-attachments/assets/da76591f-ccf7-4f45-be25-b118cb1cf9ce" />
 
 The PCA visualization of Z_G (clean encoder) and Z'_G (re-encoder on reconstructed graph) shows clear evidence that all three losses work together as intended.
 
@@ -82,6 +85,7 @@ The PCA visualization of Z_G (clean encoder) and Z'_G (re-encoder on reconstruct
 **After full training (CT mature phase):** Z_G and Z'_G converge substantially. Paired points are close together across the distribution, confirming that L₃ successfully reduces the representation error for SM jets. The model also develops partial geometric structure in the embedding space — jets are not uniformly scattered but begin forming loose directional groupings, indicating that the SimCLR contrastive objective is shaping jet identity in the latent space. The combined action of L₁, L₂, and L₃ produces both faithful reconstruction (small Z_G − Z'_G gap) and emerging discriminative structure.
 
 ### 2. Dirichlet energy — encoder stability comparison
+<img width="1650" height="750" alt="image" src="https://github.com/user-attachments/assets/d7b1c80a-166d-4169-9100-d46a1ee37cca" />
 
 Dirichlet energy (DE) measures how well node embeddings retain distinct information throughout training. A high, stable DE means nodes remain distinguishable — critical for a fine-grained anomaly score. Collapse toward zero means over-smoothing: all nodes become identical and the encoder loses discriminative power.
 
@@ -91,14 +95,12 @@ The benchmark across all GLAD variants shows a clear hierarchy:
 |---|---|---|
 | **StableChebNet-GLAD** | Starts ~21, remains stable at ~21 throughout 80 epochs | Best — high and consistent |
 | ChebNet-GLAD | Starts ~7, stabilises at ~5–6 | Moderate — acceptable but lower |
-| GCN-GLAD | Near zero throughout | Over-smoothed — poor |
-| GraphSAGE-GLAD | Near zero throughout | Over-smoothed — poor |
-| GATRewired-GLAD | Near zero throughout | Over-smoothed — poor |
 | **EdgeConv-GLAD** | Starts very high (~66) but collapses sharply to ~0 by epoch 5 — early stopped (ES@ep5) | Unstable — DE collapse triggered early stopping |
 
 StableChebNet-GLAD is the only model that combines high Dirichlet energy with training stability across 80 epochs. EdgeConv achieves the highest initial DE by far but is completely unstable — its message-passing mechanism destroys node distinguishability within a handful of epochs, making it unsuitable for long-range anomaly detection on jet graphs. ChebNet is stable but sits at a significantly lower DE floor (~5–6) compared to Stable ChebNet (~21), directly justifying the Phase 2 upgrade.
 
 ### 3. Known limitation — latent space cluster formation
+<img width="1950" height="750" alt="image" src="https://github.com/user-attachments/assets/52b7a56c-672e-4333-9706-a2938db90c21" />
 
 PCA analysis of the trained latent space reveals a tight cluster of SM jets forming in one region of the embedding space. This is a manifold collapse artifact: the autoencoder learns a degenerate reconstruction shortcut, mapping a large fraction of diverse SM jets onto a single dominant "average SM" representation.
 
@@ -106,45 +108,9 @@ The consequence for anomaly detection is a failure mode: a BSM jet whose graph s
 
 This limitation is identified as the primary open problem from Phase 1 and is the central motivation for Phase 2 architectural improvements.
 
----
 
-## Phase 2 — Planned Improvements
 
-Phase 2 directly targets the cluster formation issue and upgrades the encoder backbone.
 
-- **Stable ChebNet encoder** with antisymmetric weight matrices and forward Euler updates — mathematically guaranteed Jacobian stability, enabling deeper K without over-smoothing
-- **RePU activations** replacing ReLU — better suited to Chebyshev polynomial approximation (paper [10])
-- **Uniformity loss** added to the contrastive objective — explicitly prevents SM embeddings from collapsing to a single region by penalising pairwise closeness across the batch
-- **Prototype-based anomaly scoring** — K-means fitted on SM Z_G after training; inference score measures distance from SM prototypes rather than relying solely on L₃
-- **Physics-informed edge features** — ΔR = √(Δη² + Δφ²), Δp_T incorporated into ChebNet aggregation
-- **Alternative pooling** — MinCut / DiffPool for multi-scale jet representation
-- **EMD auxiliary score** — Earth Mover Distance between input and reconstructed jet in (p_T, η, φ) space, orthogonal to the latent space signal
-
----
-
-## Repository Structure
-
-```
-glad-scn/
-├── data/
-│   ├── preprocessing.py        # HDF5 parser, jet clustering, graph construction
-│   └── dataset.py              # PyG dataset, streaming DataLoader
-├── models/
-│   ├── encoder.py              # ChebNet / StableChebNet encoder blocks
-│   ├── decoder.py              # Structure + attribute decoders
-│   ├── projection.py           # MLP projection head
-│   └── glad_scn.py             # Full GlAD-SCN model
-├── losses/
-│   ├── reconstruction.py       # L₁
-│   ├── contrastive.py          # L₂ — SimCLR / InfoNCE
-│   └── representation.py       # L₃
-├── train.py                    # Two-stage training loop
-├── evaluate.py                 # Anomaly scoring, AUC-ROC, signal efficiency
-├── notebooks/
-│   ├── LHCO_Data_Preprocessing.ipynb
-│   └── ChebNet_Architecture_Search.ipynb
-└── README.md
-```
 
 ---
 
@@ -169,9 +135,6 @@ glad-scn/
 [*] Kasieczka et al. — LHC Olympics 2020, *Reports on Progress in Physics* 2021  
     R&D Dataset: zenodo.org/record/4536377
 
----
-
-*Mentors: Sergei Gleyzer (University of Alabama) · Ali Hariri (EPFL) · Amal Saif (PSUT) · Tom Magorsch (TUM)*
 # RnD Olympics 2020: Graph Preprocessing Pipeline
 
 This repository contains the preprocessing workflow for the **RnD Olympics Dataset 2020**. The pipeline transforms raw, tabular particle physics data into graph-structured objects suitable for Geometric Deep Learning (GDL).
