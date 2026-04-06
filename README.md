@@ -20,7 +20,7 @@ GlAD-SCN detects anomalous jet events at the LHC by learning what a normal Stand
 
 
 
-**Dataset:** LHC Olympics 2020 R&D Dataset (`events_anomalydetection_v2.h5`, Zenodo DOI: 10.5281/zenodo.4536377)  
+**Dataset:** LHC Olympics 2020 R&D Dataset (`events_anomalydetection.h5`, Zenodo DOI: 10.5281/zenodo.4536377)  
 **Framework:** PyTorch · PyTorch Geometric  
 **Phase:** 1 (ChebNet backbone) — Phase 2 (Stable ChebNet + improvements) in progress
 ---
