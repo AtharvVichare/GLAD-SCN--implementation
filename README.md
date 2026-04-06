@@ -5,10 +5,10 @@
 > Trained exclusively on Standard Model jets — no BSM signal seen during training.
 
 ⚠ Note on Current Evaluation Metrics
-Quantitative metrics such as AUC-ROC, signal efficiency, and anomaly score separation are directly dependent on the convergence of the SimCLR contrastive loss (L₂). Full convergence of InfoNCE at this scale is computationally intensive — I do not have access to the high computation power required to drive L₂ to its optimal minimum.
+Quantitative metrics such as AUC-ROC, signal efficiency, and anomaly score separation are directly dependent on the convergence of the SimCLR contrastive loss (L₂). Full convergence of SimCLR at this scale is computationally intensive — I do not have access to the high computation power required to drive SimCLR to its optimal minimum.
 Despite this, the model demonstrates meaningful progress even in the under-converged regime:
 
-L₃ successfully reduces the distance between Z_G and Z'_G for SM jets across training, confirmed by PCA visualization
+Representation learning successfully reduces the distance between Z_G and Z'_G for SM jets across training, confirmed by PCA visualization. It is observed that converging representation and reconstruction loss is comparatively easier compared to SimCLR contrastive loss(from 3.5 to 2.3 in 80 epochs). 
 The latent space develops emerging geometric structure, with paired embeddings converging and different jets beginning to separate — indicating that the contrastive objective is functioning directionally even without full convergence
 
 With increased computational resources allowing full SimCLR convergence, the anomaly scoring pipeline is expected to reach its full discriminative potential. The architecture and training protocol are validated — compute is the remaining bottleneck.
