@@ -1,8 +1,6 @@
 # GlAD-SCN — Graph-Level Anomaly Detection via Stable ChebNet
 
-> ** 2026 · ML4Sci · Phase 1 Early Implementation**  
-> Unsupervised graph-level anomaly detection for new physics searches at the LHC.  
-> Trained exclusively on Standard Model jets — no BSM signal seen during training.
+
 
 ⚠ Note on Current Evaluation Metrics
 Quantitative metrics such as AUC-ROC, signal efficiency, and anomaly score separation are directly dependent on the convergence of the SimCLR contrastive loss (L₂). Full convergence of SimCLR at this scale is computationally intensive — I do not have access to the high computation power required to drive SimCLR to its optimal minimum.
