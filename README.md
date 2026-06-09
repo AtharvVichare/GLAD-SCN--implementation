@@ -5,7 +5,6 @@
 Representation learning successfully reduces the distance between Z_G and Z'_G for SM jets across training, confirmed by PCA visualization. It is observed that converging representation and reconstruction loss is comparatively easier compared to SimCLR contrastive loss(from 3.5 to 2.3 in 80 epochs). 
 The latent space develops emerging geometric structure, with paired embeddings converging and different jets beginning to separate — indicating that the contrastive objective is functioning directionally even without full convergence
 
-With increased computational resources allowing full SimCLR convergence, the anomaly scoring pipeline is expected to reach its full discriminative potential. The architecture and training protocol are validated — compute is the remaining bottleneck.
 ---
 
 ## Overview
