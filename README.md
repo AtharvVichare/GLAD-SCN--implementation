@@ -4,9 +4,7 @@
 
 ## Overview
 
-GlAD-SCN detects anomalous jet events at the LHC by learning what a normal Standard Model (SM) jet looks like in graph space, then flagging jets that deviate from that learned distribution at inference time. The model combines a dual-graph encoder (clean + weight-perturbed), a graph autoencoder, SimCLR contrastive learning, and a representation error anomaly score — all without ever using BSM labels during training.
-
-
+Graph Level Anomaly Detection with Stable ChebConv detects anomalous Beyond Standard Model Graphs by training only on normal graphs and during inference score BSM graphs with higher anomaly score which flags anomlay. This solves a problem of targetedly searching BSM graphs which causes a newer BSM completely ignored and does math the ratio between BSM and SM jet graphs, BSM are almost 0.1% in whole jet graphs and rarely occur making classification approach uneffective and demands for unsupervised anomaly detection.
 
 Dataset: LHC Olympics 2020 R&D Dataset (`events_anomalydetection.h5`, Zenodo DOI: 10.5281/zenodo.4536377)  
 Framework: PyTorch · PyTorch Geometric  
@@ -32,38 +30,8 @@ where ϵ > 0 is the step size. Theorem 4 proves second-order stability:
 
 ## Architecture
 
-```
-Input jet graph G  (nodes: pT, η, φ  ·  k-NN edges, k=8)
-        │
-        ├─────────────────────────┐
-        ▼                         ▼
-Clean encoder f(θ)        Perturbed encoder f(θ′)
-3× ChebNet(K=5)           θ′ = θ + η·Δθ, Δθ~N(0,σ²)
-  + BN + ReLU             3× ChebNet(K=5) + BN + ReLU
-        │                         │
-   z_node, Z_G               Ẑ_G (graph embed)
-        │                         │
-        ├─────────────────────────┘
-        │              │
-        ▼              ▼
-  Graph autoencoder    SimCLR contrastive loss (L₂)
-  structure + attr     Z_G · Ẑ_G → MLP heads → InfoNCE
-  decoders → Ĝ · L₁         
-        │
-        ▼
-  Re-encoder f(θ) on Ĝ  (shared weights)
-  3× ChebNet(K=5) + BN + ReLU
-  → z′_node · Z′_G · L₃
-        │
-        ▼
-  L_total = L₁ + λ₁·L₂ + λ₂·L₃
-        │  (training only)
-        ▼
-  Anomaly score S(G) = Σ_v‖z_node,v − z′_node,v‖²/|V| + ‖Z_G − Z′_G‖²
-  (inference only — high S(G) → BSM candidate)
-```
+<img width="1989" height="2532" alt="image" src="https://github.com/user-attachments/assets/96612174-eaad-4d3d-bd96-21078d29abde" />
 
----
 
 ## Training Protocol
 
@@ -73,15 +41,6 @@ Training follows a two-stage protocol to prevent the contrastive loss from domin
 
 **Stage 2 — Full training:** All three losses active jointly. L₂ (SimCLR / InfoNCE) is introduced to shape the latent space, pulling same-jet pairs together and pushing different jets apart.
 
-| Hyperparameter | Value |
-|---|---|
-| Optimizer | AdamW |
-| Learning rate | 3e-4 with cosine annealing |
-| Batch size | 256 |
-| ChebNet order K | 5 |
-| Contrastive temperature τ | 0.5 |
-| Perturbation coefficient η | 0.1 |
-| Early stopping | Patience 20 (on SM val loss) |
 
 ---
 
@@ -104,13 +63,6 @@ The PCA visualization of Z_G (clean encoder) and Z'_G (re-encoder on reconstruct
 
 Dirichlet energy (DE) measures how well node embeddings retain distinct information throughout training. A high, stable DE means nodes remain distinguishable — critical for a fine-grained anomaly score. Collapse toward zero means over-smoothing: all nodes become identical and the encoder loses discriminative power.
 
-The benchmark across all GLAD variants shows a clear hierarchy:
-
-| Model | DE behaviour | Assessment |
-|---|---|---|
-| **StableChebNet-GLAD** | Starts ~21, remains stable at ~21 throughout 80 epochs | Best — high and consistent |
-| ChebNet-GLAD | Starts ~7, stabilises at ~5–6 | Moderate — acceptable but lower |
-| **EdgeConv-GLAD** | Starts very high (~66) but collapses sharply to ~0 by epoch 5 — early stopped (ES@ep5) | Unstable — DE collapse triggered early stopping |
 
 StableChebNet-GLAD is the only model that combines high Dirichlet energy with training stability across 80 epochs. EdgeConv achieves the highest initial DE by far but is completely unstable — its message-passing mechanism destroys node distinguishability within a handful of epochs, making it unsuitable for long-range anomaly detection on jet graphs. ChebNet is stable but sits at a significantly lower DE floor (~5–6) compared to Stable ChebNet (~21), directly justifying the Phase 2 upgrade.
 
@@ -124,18 +76,6 @@ The consequence for anomaly detection is a failure mode: a BSM jet whose graph s
 This limitation is identified as the primary open problem from Phase 1 and is the central motivation for Phase 2 architectural improvements.
 
 
-
-
-
----
-
-## Evaluation Metrics
-
-- **AUC-ROC** — primary benchmark metric
-- **Signal efficiency at fixed background rejection** — 10%, 1%, 0.1% (standard LHCO format)
-- **Anomaly score distributions** — SM vs BSM histogram separation
-- **Dirichlet energy per epoch** — encoder stability diagnostic
-- **PCA of Z_G vs Z'_G** — latent space convergence diagnostic
 
 ---
 
